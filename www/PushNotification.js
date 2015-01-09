@@ -36,6 +36,41 @@ PushNotification.prototype.unregister = function(successCallback, errorCallback,
      cordova.exec(successCallback, errorCallback, "PushPlugin", "unregister", [options]);
 };
 
+// Subscribe to a channel
+PushNotification.prototype.subscribe = function(successCallback, errorCallback, options) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.register failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.register failure: success callback parameter must be a function");
+        return
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "subscribe", [options]);
+};
+
+// Unsubscribe to a channel
+PushNotification.prototype.unsubscribe = function(successCallback, errorCallback, options) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.register failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.register failure: success callback parameter must be a function");
+        return
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "unsubscribe", [options]);
+};
+
+
     // Call this if you want to show toast notification on WP8
     PushNotification.prototype.showToastNotification = function (successCallback, errorCallback, options) {
         if (errorCallback == null) { errorCallback = function () { } }

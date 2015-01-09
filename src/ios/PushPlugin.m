@@ -58,6 +58,16 @@
     id soundArg = [options objectForKey:@"sound"];
     id alertArg = [options objectForKey:@"alert"];
 
+    self.userId = [options objectForKey:@"userId"];
+
+    NSString *appId = [options objectForKey:@"appId"];
+    NSString *clientKey = [options objectForKey:@"clientKey"];
+    
+    if(appId && clientKey) 
+    {
+        [Parse setApplicationId:appId clientKey:clientKey];    
+    }
+
     if ([badgeArg isKindOfClass:[NSString class]])
     {
         if ([badgeArg isEqualToString:@"true"]) {
@@ -187,7 +197,19 @@
         [results setValue:dev.model forKey:@"deviceModel"];
         [results setValue:dev.systemVersion forKey:@"deviceSystemVersion"];
 
-		[self successWithMessage:[NSString stringWithFormat:@"%@", token]];
+        // Install on Parse server
+        if(self.userId) {
+            PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    
+            [currentInstallation setObject:[PFObject objectWithoutDataWithClassName:@"_User" objectId:self.userId] forKey:@"user"];
+
+            [currentInstallation setDeviceTokenFromData:deviceToken];
+            [currentInstallation saveInBackground];
+
+            [self successWithMessage:[NSString stringWithFormat:@"%@", token]];
+        } else {
+            [self successWithMessage:[NSString stringWithFormat:@"%@", token]];
+        }
     #endif
 }
 
@@ -260,6 +282,34 @@
 
     [self successWithMessage:[NSString stringWithFormat:@"app badge count set to %d", badge]];
 }
+
+- (void)subscribe: (CDVInvokedUrlCommand *)command
+{
+    self.callbackId = command.callbackId;
+
+    NSString *channel = [command.arguments objectAtIndex:0];
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    
+    [currentInstallation addUniqueObject:channel forKey:@"channels"];
+    [currentInstallation saveInBackground];
+
+    [self successWithMessage:[NSString stringWithFormat:@"subscribed to channel %@", channel]];
+}
+    
+- (void)unsubscribe: (CDVInvokedUrlCommand *)command
+{
+    self.callbackId = command.callbackId;
+
+    NSString *channel = [command.arguments objectAtIndex:0];
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+
+    [currentInstallation removeObject:channel forKey:@"channels"];
+    [currentInstallation saveInBackground];
+
+    [self successWithMessage:[NSString stringWithFormat:@"unsubscribed from channel %@", channel]];
+}
+
+
 -(void)successWithMessage:(NSString *)message
 {
     if (self.callbackId != nil)
